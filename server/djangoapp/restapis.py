@@ -11,6 +11,7 @@ sentiment_analyzer_url = os.getenv(
     'sentiment_analyzer_url',
     default="http://localhost:5050/")
 
+
 # Create a `get_request` to make HTTP GET requests
 def get_request(endpoint, **kwargs):
     try:
