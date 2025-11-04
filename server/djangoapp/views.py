@@ -96,7 +96,7 @@ def get_dealerships(request):
             except Exception as e:
                 logger.error(f"Error loading dealerships from file: {e}")
                 dealers_data = []
-        
+
         # Ensure dealers_data is a list
         if not isinstance(dealers_data, list):
             if isinstance(dealers_data, dict) and "dealerships" in dealers_data:
