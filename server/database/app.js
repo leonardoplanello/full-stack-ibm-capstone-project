@@ -8,27 +8,33 @@ const port = 3030;
 app.use(cors())
 app.use(require('body-parser').urlencoded({ extended: false }));
 
-const reviews_data = JSON.parse(fs.readFileSync("reviews.json", 'utf8'));
-const dealerships_data = JSON.parse(fs.readFileSync("dealerships.json", 'utf8'));
+const reviews_data = JSON.parse(fs.readFileSync("data/reviews.json", 'utf8'));
+const dealerships_data = JSON.parse(fs.readFileSync("data/dealerships.json", 'utf8'));
 
-mongoose.connect("mongodb://mongo_db:27017/",{'dbName':'dealershipsDB'});
+mongoose.connect("mongodb://localhost:27017/",{'dbName':'dealershipsDB'})
+  .then(() => {
+    console.log('Connected to MongoDB');
+    const Reviews = require('./review');
+    const Dealerships = require('./dealership');
 
+    // Populate data
+    Reviews.deleteMany({}).then(()=>{
+      Reviews.insertMany(reviews_data['reviews']);
+      console.log('Reviews inserted');
+    }).catch(err => console.error('Error inserting reviews:', err));
+    
+    Dealerships.deleteMany({}).then(()=>{
+      Dealerships.insertMany(dealerships_data['dealerships']);
+      console.log('Dealerships inserted');
+    }).catch(err => console.error('Error inserting dealerships:', err));
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    console.log('Server will start but database operations will fail');
+  });
 
 const Reviews = require('./review');
-
 const Dealerships = require('./dealership');
-
-try {
-  Reviews.deleteMany({}).then(()=>{
-    Reviews.insertMany(reviews_data['reviews']);
-  });
-  Dealerships.deleteMany({}).then(()=>{
-    Dealerships.insertMany(dealerships_data['dealerships']);
-  });
-  
-} catch (error) {
-  res.status(500).json({ error: 'Error fetching documents' });
-}
 
 
 // Express route to home
@@ -50,8 +56,19 @@ app.get('/fetchReviews', async (req, res) => {
 app.get('/fetchReviews/dealer/:id', async (req, res) => {
   try {
     const documents = await Reviews.find({dealership: req.params.id});
+    if (documents.length === 0) {
+      // If no documents found in DB, try mock data
+      const mockReviews = reviews_data['reviews'].filter(r => r.dealership == req.params.id);
+      return res.json(mockReviews);
+    }
     res.json(documents);
   } catch (error) {
+    console.error('Error fetching reviews:', error.message);
+    // Return mock data if MongoDB is not connected
+    const mockReviews = reviews_data['reviews'].filter(r => r.dealership == req.params.id);
+    if (mockReviews.length > 0) {
+      return res.json(mockReviews);
+    }
     res.status(500).json({ error: 'Error fetching documents' });
   }
 });
@@ -60,9 +77,15 @@ app.get('/fetchReviews/dealer/:id', async (req, res) => {
 app.get('/fetchDealers', async (req, res) => {
   try {
     const documents = await Dealerships.find();
+    if (documents.length === 0) {
+      // If no documents found in DB, try mock data
+      return res.json(dealerships_data['dealerships']);
+    }
     res.json(documents);
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching documents' });
+    console.error('Error fetching dealerships:', error.message);
+    // Return mock data if MongoDB is not connected
+    return res.json(dealerships_data['dealerships']);
   }
 });
 
@@ -70,8 +93,19 @@ app.get('/fetchDealers', async (req, res) => {
 app.get('/fetchDealers/:state', async (req, res) => {
   try {
     const documents = await Dealerships.find({state: req.params.state});
+    if (documents.length === 0) {
+      // If no documents found in DB, try mock data
+      const mockDealers = dealerships_data['dealerships'].filter(d => d.state === req.params.state);
+      return res.json(mockDealers);
+    }
     res.json(documents);
   } catch (error) {
+    console.error('Error fetching dealerships by state:', error.message);
+    // Return mock data if MongoDB is not connected
+    const mockDealers = dealerships_data['dealerships'].filter(d => d.state === req.params.state);
+    if (mockDealers.length > 0) {
+      return res.json(mockDealers);
+    }
     res.status(500).json({ error: 'Error fetching documents' });
   }
 });
@@ -80,8 +114,19 @@ app.get('/fetchDealers/:state', async (req, res) => {
 app.get('/fetchDealer/:id', async (req, res) => {
   try {
     const documents = await Dealerships.find({id: req.params.id});
+    if (documents.length === 0) {
+      // If no documents found in DB, try mock data
+      const mockDealer = dealerships_data['dealerships'].filter(d => d.id == req.params.id);
+      return res.json(mockDealer);
+    }
     res.json(documents);
   } catch (error) {
+    console.error('Error fetching dealer:', error.message);
+    // Return mock data if MongoDB is not connected
+    const mockDealer = dealerships_data['dealerships'].filter(d => d.id == req.params.id);
+    if (mockDealer.length > 0) {
+      return res.json(mockDealer);
+    }
     res.status(500).json({ error: 'Error fetching documents' });
   }
 });

@@ -549,6 +549,39 @@
       "car_make": "Cadillac",
       "car_model": "DeVille",
       "car_year": 1995
+    },
+    {
+      "id": 51,
+      "name": "admin",
+      "dealership": 15,
+      "review": "Amazing service! The staff was very helpful and professional. I highly recommend this dealership!",
+      "purchase": true,
+      "purchase_date": "2023-06-20",
+      "car_make": "Honda",
+      "car_model": "Accord",
+      "car_year": 2021
+    },
+    {
+      "id": 52,
+      "name": "admin",
+      "dealership": 15,
+      "review": "trash",
+      "purchase": true,
+      "purchase_date": "2025-11-12",
+      "car_make": "Toyota",
+      "car_model": "RAV4",
+      "car_year": 2020
+    },
+    {
+      "id": 53,
+      "name": "admin",
+      "dealership": 15,
+      "review": "Horrible",
+      "purchase": true,
+      "purchase_date": "2025-11-03",
+      "car_make": "BMW",
+      "car_model": "X5",
+      "car_year": 2021
     }
   ]
 }
