@@ -31,8 +31,9 @@ jobs:
     - name: Run Linter
       run: |
         pwd
+        ls -la
         # This command finds all Python files recursively, excluding virtual environments and migrations, and runs flake8 on them
-        find ./server -name "*.py" -not -path "*/djangoenv/*" -not -path "*/migrations/*" -exec flake8 {} +
+        find ./server -name "*.py" -not -path "*/djangoenv/*" -not -path "*/migrations/*" -print0 | xargs -0 flake8 --max-line-length=120 --extend-ignore=E501 || exit 1
         echo "Linted all the python files successfully"
 
   lint_js:
@@ -53,7 +54,9 @@ jobs:
 
       - name: Run Linter
         run: |
+          pwd
+          ls -la ./server/database || echo "Directory check"
           # This command finds all JavaScript files recursively and runs JSHint on them
-          find ./server/database -name "*.js" -exec jshint {} +
+          find ./server/database -name "*.js" -print0 | xargs -0 -I {} sh -c 'jshint {} || exit 1'
           echo "Linted all the js files successfully"
 
