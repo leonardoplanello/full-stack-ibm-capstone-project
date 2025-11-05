@@ -31,11 +31,14 @@ jobs:
     - name: Run Linter
       run: |
         pwd
-        ls -la
         # This command finds all Python files recursively, excluding virtual environments and migrations, and runs flake8 on them
+<<<<<<< HEAD
         find ./server -name "*.py" -not -path "*/djangoenv/*" -not -path "*/migrations/*" | while read file; do
           flake8 "$file" --max-line-length=120 --extend-ignore=E501 || exit 1
         done
+=======
+        find ./server -name "*.py" -not -path "*/djangoenv/*" -not -path "*/migrations/*" -exec flake8 {} +
+>>>>>>> parent of c03ac67 (Fix workflow linter commands to handle errors properly)
         echo "Linted all the python files successfully"
 
   lint_js:
@@ -56,11 +59,13 @@ jobs:
 
       - name: Run Linter
         run: |
-          pwd
-          ls -la ./server/database || echo "Directory check"
           # This command finds all JavaScript files recursively and runs JSHint on them
+<<<<<<< HEAD
           find ./server/database -name "*.js" | while read file; do
             jshint "$file" || exit 1
           done
+=======
+          find ./server/database -name "*.js" -exec jshint {} +
+>>>>>>> parent of c03ac67 (Fix workflow linter commands to handle errors properly)
           echo "Linted all the js files successfully"
 
