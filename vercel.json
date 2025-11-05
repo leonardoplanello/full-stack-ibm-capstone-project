@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server/api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/server/staticfiles/$1"
+    },
+    {
+      "src": "/media/(.*)",
+      "dest": "/server/staticfiles/media/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server/api/index.py"
+    }
+  ],
+  "env": {
+    "PYTHONPATH": "server",
+    "VERCEL": "1"
+  }
+}
+
