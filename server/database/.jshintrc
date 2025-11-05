@@ -1,0 +1,10 @@
+{
+  "node": true,
+  "esversion": 6,
+  "undef": true,
+  "unused": true,
+  "console": true,
+  "global": true,
+  "predef": ["require", "module", "exports", "__dirname", "__filename"]
+}
+
