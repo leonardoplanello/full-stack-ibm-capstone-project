@@ -111,14 +111,24 @@ WSGI_APPLICATION = 'djangoproj.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-if os.environ.get('VERCEL') and os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
+if os.environ.get('VERCEL'):
+    # Para Vercel, usar SQLite em memória ou tentar PostgreSQL se DATABASE_URL estiver disponível
+    if os.environ.get('DATABASE_URL'):
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=os.environ.get('DATABASE_URL'),
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    else:
+        # Fallback para SQLite em memória no Vercel (não persistente)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': ':memory:',
+            }
+        }
 else:
     DATABASES = {
         'default': {

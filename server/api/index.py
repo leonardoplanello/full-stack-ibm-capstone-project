@@ -17,8 +17,19 @@ server_dir = os.path.dirname(api_dir)
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 
-# Now import Django
-from django.core.wsgi import get_wsgi_application
-
-# Initialize Django application
-application = get_wsgi_application()
+# Now import Django with error handling
+try:
+    from django.core.wsgi import get_wsgi_application
+    # Initialize Django application
+    application = get_wsgi_application()
+except Exception as e:
+    # Fallback error handler
+    import logging
+    logging.basicConfig(level=logging.ERROR)
+    logging.error(f"Django initialization error: {str(e)}")
+    
+    def application(environ, start_response):
+        status = '500 Internal Server Error'
+        response_headers = [('Content-type', 'text/plain')]
+        start_response(status, response_headers)
+        return [f'Django initialization error: {str(e)}'.encode()]
