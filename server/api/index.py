@@ -21,15 +21,27 @@ if server_dir not in sys.path:
 # Change to server directory to ensure relative paths work
 os.chdir(server_dir)
 
+# Store error for later use
+_init_error = None
+_init_traceback = None
+
 # Now import Django with error handling
 try:
     from django.core.wsgi import get_wsgi_application
     # Initialize Django application
     application = get_wsgi_application()
 except Exception as e:
-    # Fallback error handler with detailed error message
-    error_trace = traceback.format_exc()
+    # Store error details
+    _init_error = str(e)
+    _init_traceback = traceback.format_exc()
     
+    # Log error
+    import logging
+    logging.basicConfig(level=logging.ERROR)
+    logging.error(f"Django initialization error: {_init_error}")
+    logging.error(_init_traceback)
+    
+    # Create error handler
     def application(environ, start_response):
         status = '500 Internal Server Error'
         response_headers = [('Content-type', 'text/html; charset=utf-8')]
@@ -39,9 +51,9 @@ except Exception as e:
         <head><title>Django Initialization Error</title></head>
         <body>
         <h1>Django Initialization Error</h1>
-        <pre>{str(e)}</pre>
+        <p><strong>Error:</strong> {_init_error}</p>
         <h2>Traceback:</h2>
-        <pre>{error_trace}</pre>
+        <pre>{_init_traceback}</pre>
         </body>
         </html>
         """
