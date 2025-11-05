@@ -1,10 +1,9 @@
 import os
 import django
+from djangoapp.models import CarMake, CarModel  # noqa: E402
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoproj.settings')
 django.setup()
-
-from djangoapp.models import CarMake, CarModel
 
 # Create car makes
 car_makes_data = [
@@ -57,4 +56,3 @@ for make_name, model_name, car_type, year in car_models_data:
 
 print(f'\nTotal CarMakes: {CarMake.objects.count()}')
 print(f'Total CarModels: {CarModel.objects.count()}')
-
