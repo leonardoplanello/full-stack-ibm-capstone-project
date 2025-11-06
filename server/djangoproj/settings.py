@@ -26,36 +26,39 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-ccow$tz_=9%dxu4(0%^(z%nx32#s@(zt9$ih@)5l54yny)wm-0')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+# Detect if running in production (Railway provides PORT environment variable)
+IS_PRODUCTION = bool(os.environ.get('RAILWAY_ENVIRONMENT')) or bool(os.environ.get('PORT'))
+DEBUG = os.environ.get('DEBUG', 'False' if IS_PRODUCTION else 'True') == 'True'
 
-# Configuração para Vercel
-if os.environ.get('VERCEL'):
-    DEBUG = False
-    ALLOWED_HOSTS = [
-        '.vercel.app',
-        '.now.sh',
-        'localhost',
-        '127.0.0.1',
-        '*'
-    ]
-    
-    # Adicionar URL do Vercel se disponível
-    vercel_url = os.environ.get('VERCEL_URL')
-    if vercel_url:
-        ALLOWED_HOSTS.append(vercel_url)
-    
-    CSRF_TRUSTED_ORIGINS = [
-        'https://' + host for host in ALLOWED_HOSTS if not host.startswith('localhost') and not host.startswith('127.0.0.1') and host != '*'
-    ]
-    
-    # Adicionar domínios do Vercel
-    CSRF_TRUSTED_ORIGINS.extend([
-        'https://*.vercel.app',
-        'https://*.now.sh'
-    ])
-else:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+# Allowed hosts configuration
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+
+# Add Railway domain if running on Railway
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    # Also add the base domain
+    if '.' in RAILWAY_PUBLIC_DOMAIN:
+        base_domain = '.'.join(RAILWAY_PUBLIC_DOMAIN.split('.')[-2:])
+        ALLOWED_HOSTS.append(f'*.{base_domain}')
+
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost:3000', 'http://127.0.0.1:3000']
+
+# Add Railway HTTPS origins
+if RAILWAY_PUBLIC_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_PUBLIC_DOMAIN}')
+    if '.' in RAILWAY_PUBLIC_DOMAIN:
+        base_domain = '.'.join(RAILWAY_PUBLIC_DOMAIN.split('.')[-2:])
+        CSRF_TRUSTED_ORIGINS.append(f'https://*.{base_domain}')
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
@@ -71,11 +74,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -111,24 +116,16 @@ WSGI_APPLICATION = 'djangoproj.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-if os.environ.get('VERCEL'):
-    # Para Vercel, usar SQLite em memória ou tentar PostgreSQL se DATABASE_URL estiver disponível
-    if os.environ.get('DATABASE_URL'):
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=os.environ.get('DATABASE_URL'),
-                conn_max_age=600,
-                conn_health_checks=True,
-            )
-        }
-    else:
-        # Fallback para SQLite em memória no Vercel (não persistente)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': ':memory:',
-            }
-        }
+# Use DATABASE_URL if available (Railway provides this automatically with PostgreSQL)
+# Otherwise fall back to SQLite for local development
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 else:
     DATABASES = {
         'default': {
@@ -179,9 +176,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(STATIC_ROOT, 'media')
 MEDIA_URL = '/media/'
 
-# Configuração WhiteNoise para arquivos estáticos
-if os.environ.get('VERCEL'):
+# Configuration WhiteNoise for static files (works for Railway and production)
+# Use compressed manifest storage in production for better performance
+if IS_PRODUCTION:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

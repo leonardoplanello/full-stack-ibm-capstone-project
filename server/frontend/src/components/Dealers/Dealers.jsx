@@ -10,7 +10,7 @@ const Dealers = () => {
   let [states, setStates] = useState([])
 
   // let root_url = window.location.origin
-  let dealer_url ="/djangoapp/get_dealers";
+  let dealer_url ="/djangoapp/get_dealers/";
   
   let dealer_url_by_state = "/djangoapp/get_dealers/";
  
@@ -57,6 +57,7 @@ return(
       <Header/>
 
      <table className='table'>
+      <thead>
       <tr>
       <th>ID</th>
       <th>Dealer Name</th>
@@ -64,11 +65,11 @@ return(
       <th>Address</th>
       <th>Zip</th>
       <th>
-      <select name="state" id="state" onChange={(e) => filterDealers(e.target.value)}>
-      <option value="" selected disabled hidden>State</option>
+      <select name="state" id="state" defaultValue="" onChange={(e) => filterDealers(e.target.value)}>
+      <option value="" disabled hidden>State</option>
       <option value="All">All States</option>
       {states.map(state => (
-          <option value={state}>{state}</option>
+          <option key={state} value={state}>{state}</option>
       ))}
       </select>        
 
@@ -78,8 +79,10 @@ return(
          ):<></>
       }
       </tr>
+      </thead>
+      <tbody>
      {dealersList.map(dealer => (
-        <tr>
+        <tr key={dealer['id']}>
           <td>{dealer['id']}</td>
           <td><a href={'/dealer/'+dealer['id']}>{dealer['full_name']}</a></td>
           <td>{dealer['city']}</td>
@@ -92,7 +95,8 @@ return(
           }
         </tr>
       ))}
-     </table>;
+      </tbody>
+     </table>
   </div>
 )
 }
