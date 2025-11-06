@@ -131,6 +131,10 @@ if os.environ.get('DATABASE_URL'):
             default=os.environ.get('DATABASE_URL'),
             conn_max_age=600,
             conn_health_checks=True,
+            options={
+                'connect_timeout': 10,
+                'options': '-c statement_timeout=30000'
+            }
         )
     }
 else:
